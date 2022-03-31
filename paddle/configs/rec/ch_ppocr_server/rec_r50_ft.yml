@@ -1,0 +1,103 @@
+Global:
+  use_gpu: true
+  epoch_num: 300
+  log_smooth_window: 20
+  print_batch_step: 10
+  save_model_dir: ./output/rec_r50_ft
+  save_epoch_step: 10
+  # evaluation is run every 2000 iterations after the 0th iteration
+  eval_batch_step: [10000, 5000]
+  cal_metric_during_train: True
+  pretrained_model: ./pretrain_models/rec_r50_da_dgx_loss9/best_accuracy
+  checkpoints: ./output/rec_r50_ft/latest
+  save_inference_dir:
+  use_visualdl: False
+  infer_img: /home/mark/Desktop/py3.7/cv/datasets/ai_cup_f/train_cut/img
+  # for data or label process
+  distort: True
+  character_dict_path: ./ppocr/utils/dict/dic6278.txt
+  character_type: chinese_cht
+  max_text_length: 25
+  infer_mode: False
+  use_space_char: False
+  save_res_path: ./output/rec/rec_r50_da.txt
+
+
+Optimizer:
+  name: Adam
+  beta1: 0.9
+  beta2: 0.999
+  lr:
+    name: Cosine
+    learning_rate: 0.001
+  regularizer:
+    name: 'L2'
+    factor: 0.00004
+
+Architecture:
+  model_type: rec
+  algorithm: CRNN
+  Transform:
+  Backbone:
+    name: ResNet
+    layers: 50
+  Neck:
+    name: SequenceEncoder
+    encoder_type: rnn
+    hidden_size: 256
+  Head:
+    name: CTCHead
+    fc_decay: 0.00004
+
+Loss:
+  name: CTCLoss
+
+PostProcess:
+  name: CTCLabelDecode
+
+Metric:
+  name: RecMetric
+  main_indicator: acc
+
+Train:
+  dataset:
+    name: SimpleDataSet
+    data_dir: /home/mark/Desktop/py3.7/cv/datasets/ai_cup_f/train_cut/
+    label_file_list: ["/home/mark/Desktop/py3.7/cv/datasets/ai_cup_f/train_cut/train_label.txt"]
+    transforms:
+      - DecodeImage: # load image
+          img_mode: BGR
+          channel_first: False
+      - RecAug: 
+      - CTCLabelEncode: # Class handling label
+      - RecResizeImg:
+          image_shape: [3, 32, 320]
+      - KeepKeys:
+          keep_keys: ['image', 'label', 'length'] # dataloader will return list in this order
+  loader:
+    use_shared_memory: False
+    shuffle: True
+    batch_size_per_card: 45
+    drop_last: True
+    num_workers: 8
+
+Eval:
+  dataset:
+    name: SimpleDataSet
+    data_dir: /home/mark/Desktop/py3.7/cv/datasets/ai_cup_f/train_cut/
+    label_file_list: ["/home/mark/Desktop/py3.7/cv/datasets/ai_cup_f/train_cut/test_label.txt"]
+    transforms:
+      - DecodeImage: # load image
+          img_mode: BGR
+          channel_first: False
+      - CTCLabelEncode: # Class handling label
+      - RecResizeImg:
+          image_shape: [3, 32, 320]
+      - KeepKeys:
+          keep_keys: ['image', 'label', 'length'] # dataloader will return list in this order
+  loader:
+    use_shared_memory: False
+    shuffle: False
+    drop_last: False
+    batch_size_per_card: 45
+    num_workers: 8
