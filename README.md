@@ -4,6 +4,7 @@ We used paddleOCR packages for most of the training. We also added some data aug
 
 **More Details**
 
-Report : Final Report.pdf 
+- Report : [Final Report.pdf](https://github.com/HaoruSung/AICUP_OCR/blob/main/Report.pdf) 
 
-Presentation PPT : Final Presentation.pptx
+
+- Presentation PPT : [Final Presentation.pptx](https://github.com/HaoruSung/AICUP_OCR/blob/main/Presentation.pptx)
